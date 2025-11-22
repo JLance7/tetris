@@ -198,7 +198,11 @@ def get_random_tetrimino():
 
 
 def get_user_input():
-  answer = input('Input (enter to do nothing, L for rotate left, R for rotate right)')
+  text = '''
+    Input (enter to do nothing, L for rotate left, R for rotate right)
+    OR (Left to go left, Right to go Right, Down to go down)
+  '''
+  answer = input(text)
   answer = answer.capitalize()
   return answer
 
@@ -219,6 +223,26 @@ def game_logic(board):
     
     # Get user input (also timing)
     user_input = get_user_input()
+    # does_piece_fit()
+    remove_tetrimino_from_board(board, current_piece, current_piece_rotation, currentRow, currentCol)
+
+    if user_input == '':
+      currentRow += 1
+      continue
+    elif user_input == 'L':
+      current_piece_rotation = current_piece_rotation - 90
+    elif user_input == 'R':
+      current_piece_rotation = current_piece_rotation + 90
+    elif user_input == 'Left':
+      currentCol -= 1
+    elif user_input == 'Right':
+      currentCol += 1
+    elif user_input == 'Down':
+      currentRow += 1
+    else:
+      currentRow += 1
+      continue
+    currentRow += 1
     
 
 def update_tetrimino_in_board(board: list[str], current_piece: list[str], current_piece_rotation: int, 
@@ -228,6 +252,15 @@ def update_tetrimino_in_board(board: list[str], current_piece: list[str], curren
       i = rotate(col, row, current_piece_rotation)
       if current_piece[i] == 'X': # if tetrimino piece has a value, add it to the board
         board[(currentRow + row) * WIDTH + (currentCol + col)] = 'O'
+
+
+def remove_tetrimino_from_board(board: list[str], current_piece: list[str], current_piece_rotation: int, 
+                              currentRow: int, currentCol: int):
+  for row in range(4):
+    for col in range(4):
+      i = rotate(col, row, current_piece_rotation)
+      if current_piece[i] == 'X': # if tetrimino piece has a value, add it to the board
+        board[(currentRow + row) * WIDTH + (currentCol + col)] = '.'
 
 
 def does_piece_fit(board: list[str], location_in_array: tuple[int, int], tetrimino_id: int, current_rotation: int): 
