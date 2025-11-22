@@ -116,34 +116,64 @@ def rotate(col, row, r=0):
 WIDTH = 12
 HEIGHT = 18
 
+def get_i_board(row, col):
+  i = row * WIDTH + col
+  return i
+
+
 def setup_board():
+  # 2d version
   # board = [ ['.']*WIDTH for col in range(HEIGHT)]
+  # board = []
+  # for row in range(HEIGHT):
+  #   new_row = []
+  #   for col in range(WIDTH):
+  #     if col == 0 or col == WIDTH - 1:
+  #       new_row.append('X')
+  #     elif row == HEIGHT - 1:
+  #       new_row.append('X')
+  #     else:
+  #       new_row.append('.')
+  #   board.append(new_row)
+  # # print(board)
+  # return board
+
+  # 1d version
   board = []
   for row in range(HEIGHT):
-    new_row = []
     for col in range(WIDTH):
+      i = get_i_board(row, col)
       if col == 0 or col == WIDTH - 1:
-        new_row.append('X')
+        board.append('X')
       elif row == HEIGHT - 1:
-        new_row.append('X')
+        board.append('X')
       else:
-        new_row.append('.')
-    board.append(new_row)
-  # print(board)
+        board.append('.')
   return board
 
 
 def print_board(board):
+  # 2d version
+  # for row in range(HEIGHT):
+  #   for col in range(WIDTH):
+  #     print(board[row][col], end='')
+  #   print()
+
+  # 1d version
   for row in range(HEIGHT):
     for col in range(WIDTH):
-      print(board[row][col], end='')
+      i = get_i_board(row, col)
+      # print(i, end=' ')
+      if board[i] == '.':
+        print(' ', end='')
+      else:
+        print(board[i], end='')
     print()
 
 
 def print_tetrimino(tetrimino: list[str], r=0):
   """
-  Convert string to 1d (like 2d array)
-  Then print out the array with or without rotation
+  For testing
   """
   # tetrimino = ['.', '.', '.', 'X', '.', '.', '.', '.', 'X', '.', '.', '.', '.', 'X', '.', '.', '.', '.', 'X', '.']
   for row in range(4):
@@ -174,16 +204,33 @@ def get_user_input():
 
 
 def game_logic(board):
+  current_piece: list[str] = TETRIMINOS[get_random_tetrimino()]
+  current_piece_rotation = 0
+  currentCol = WIDTH // 2
+  currentRow = 0
+  
   # game loop
   while True:
-    # Draw
+    # update tetrimino in board array
+    update_tetrimino_in_board(board, current_piece, current_piece_rotation, currentRow, currentCol)
+
+    # Draw board
     print_board(board)
+    
     # Get user input (also timing)
     user_input = get_user_input()
-    # game logic
+    
+
+def update_tetrimino_in_board(board: list[str], current_piece: list[str], current_piece_rotation: int, 
+                              currentRow: int, currentCol: int):
+  for row in range(4):
+    for col in range(4):
+      i = rotate(col, row, current_piece_rotation)
+      if current_piece[i] == 'X': # if tetrimino piece has a value, add it to the board
+        board[(currentRow + row) * WIDTH + (currentCol + col)] = 'O'
 
 
-def does_piece_fit(board: list[str], tetrimino_id: int, current_rotation: int, location_in_array: tuple[int, int]): 
+def does_piece_fit(board: list[str], location_in_array: tuple[int, int], tetrimino_id: int, current_rotation: int): 
   # location_in_array is (row, col)
   row_i_in_array, col_i_in_array = location_in_array
   for row in range(4):
@@ -197,7 +244,7 @@ def does_piece_fit(board: list[str], tetrimino_id: int, current_rotation: int, l
       # collision detection
       if (col_i_in_array + col >= 0) and (col_i_in_array + col < WIDTH):
         if (row_i_in_array + row >= 0) and (row_i_in_array + row < HEIGHT):
-          if (TETRIMINOS[tetrimino_id][piece_i] == 'X') and (board[field_i] != 0):
+          if (TETRIMINOS[tetrimino_id][piece_i] == 'X') and (board[field_i] != '.'):
             return False # fail on first hit
   return True
 
@@ -205,7 +252,8 @@ def does_piece_fit(board: list[str], tetrimino_id: int, current_rotation: int, l
 def main():
   board = setup_board()
   # print_board(board)
-  test()
+  # test()
+  game_logic(board)
   
 
 
