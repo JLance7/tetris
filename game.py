@@ -206,33 +206,67 @@ def get_user_input():
   answer = answer.capitalize()
   return answer
 
-
+# todo check block clear and lose
 def game_logic(board):
   current_piece: list[str] = TETRIMINOS[get_random_tetrimino()]
   current_piece_rotation = 0
   currentCol = WIDTH // 2
   currentRow = 0
-  
+  piece_reset = False
+
   # game loop
   while True:
+    if piece_reset:
+      # permanently place piece in board
+      update_tetrimino_in_board(board, current_piece, current_piece_rotation, currentRow, currentCol, 'M')
+      piece_reset = False
+      current_piece = TETRIMINOS[get_random_tetrimino()]
+      current_piece_rotation = 0
+      currentCol = WIDTH // 2
+      currentRow = 0
+
+    # Draw
     # update tetrimino in board array
     update_tetrimino_in_board(board, current_piece, current_piece_rotation, currentRow, currentCol)
-
-    # Draw board
     print_board(board)
     
-    # Get user input (also timing)
-    user_input = get_user_input()
-    # does_piece_fit()
-    remove_tetrimino_from_board(board, current_piece, current_piece_rotation, currentRow, currentCol)
+    # Get user input (also timing) and check if user input fits
+    fits = False
+    while not fits:
+      user_input = get_user_input()
+      if user_input == '':
+        fits = True
+      elif user_input == 'L':
+        fits = does_piece_fit(board, (currentRow, currentCol), current_piece, current_piece_rotation - 90)
+      elif user_input == 'R':
+        fits = does_piece_fit(board, (currentRow, currentCol), current_piece, current_piece_rotation + 90)
 
+      elif user_input == 'Left':
+        fits = does_piece_fit(board, (currentRow, currentCol - 1), current_piece, current_piece_rotation)
+      elif user_input == 'Right':
+        fits = does_piece_fit(board, (currentRow, currentCol + 1), current_piece, current_piece_rotation)
+      elif user_input == 'Down':
+        fits = does_piece_fit(board, (currentRow + 1, currentCol), current_piece, current_piece_rotation)
+      else:
+        fits = True
+      print('fits:', fits)
+    
+    remove_tetrimino_from_board(board, current_piece, current_piece_rotation, currentRow, currentCol)
+    
+    # actually move piece
     if user_input == '':
-      currentRow += 1
+      fits = does_piece_fit(board, (currentRow + 1, currentCol), current_piece, current_piece_rotation)
+      if fits:
+        currentRow += 1
+      else:
+        piece_reset = True
       continue
+    
     elif user_input == 'L':
       current_piece_rotation = current_piece_rotation - 90
     elif user_input == 'R':
       current_piece_rotation = current_piece_rotation + 90
+
     elif user_input == 'Left':
       currentCol -= 1
     elif user_input == 'Right':
@@ -240,22 +274,36 @@ def game_logic(board):
     elif user_input == 'Down':
       currentRow += 1
     else:
-      currentRow += 1
+      fits = does_piece_fit(board, (currentRow + 1, currentCol), current_piece, current_piece_rotation)
+      if fits:
+        currentRow += 1
+      else:
+        piece_reset = True
       continue
-    currentRow += 1
+    
+    # move down 1 each time, if it hits bottom, reset piece
+    fits = does_piece_fit(board, (currentRow + 1, currentCol), current_piece, current_piece_rotation)
+    if fits:
+      print('here')
+      currentRow += 1
+    else:
+      print('piece_reset')
+      piece_reset = True
+    
     
 
 def update_tetrimino_in_board(board: list[str], current_piece: list[str], current_piece_rotation: int, 
-                              currentRow: int, currentCol: int):
+                              currentRow: int, currentCol: int, piece_val='O'):
   for row in range(4):
     for col in range(4):
       i = rotate(col, row, current_piece_rotation)
       if current_piece[i] == 'X': # if tetrimino piece has a value, add it to the board
-        board[(currentRow + row) * WIDTH + (currentCol + col)] = 'O'
+        board[(currentRow + row) * WIDTH + (currentCol + col)] = piece_val # the magic
 
 
 def remove_tetrimino_from_board(board: list[str], current_piece: list[str], current_piece_rotation: int, 
                               currentRow: int, currentCol: int):
+  # remove old values for next draw
   for row in range(4):
     for col in range(4):
       i = rotate(col, row, current_piece_rotation)
@@ -263,21 +311,26 @@ def remove_tetrimino_from_board(board: list[str], current_piece: list[str], curr
         board[(currentRow + row) * WIDTH + (currentCol + col)] = '.'
 
 
-def does_piece_fit(board: list[str], location_in_array: tuple[int, int], tetrimino_id: int, current_rotation: int): 
+# does_piece_fit(board, (currentRow + 1, currentCol), tetrimino_id, current_piece_rotation)
+def does_piece_fit(board: list[str], location_in_array: tuple[int, int], tetrimino_piece: list[str], 
+                   current_rotation: int) -> bool: 
   # location_in_array is (row, col)
   row_i_in_array, col_i_in_array = location_in_array
   for row in range(4):
-    for col in range(4):
+    for col in range(4): 
+      # check if each tetrimino piece's cell is a value, if so check if it fits in the boards value when inserted
+
       # index into piece
       piece_i = rotate(col, row, r=current_rotation)
 
       # index into board array (row * width + x)
-      field_i = (row_i_in_array + row) * WIDTH + (col_i_in_array + col)
+      field_i = (row_i_in_array + row) * WIDTH + (col_i_in_array + col) # y * width + x
 
       # collision detection
       if (col_i_in_array + col >= 0) and (col_i_in_array + col < WIDTH):
         if (row_i_in_array + row >= 0) and (row_i_in_array + row < HEIGHT):
-          if (TETRIMINOS[tetrimino_id][piece_i] == 'X') and (board[field_i] != '.'):
+          # main check thing, if piece index is a blck, and it's board index is not and not fully placed piece (M)
+          if (tetrimino_piece[piece_i] == 'X') and ( (board[field_i] == 'X') or (board[field_i] == 'M') ): 
             return False # fail on first hit
   return True
 
@@ -290,4 +343,5 @@ def main():
   
 
 
-main()
+if __name__ == '__main__':
+  main()
