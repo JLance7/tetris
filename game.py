@@ -215,6 +215,7 @@ def game_logic(board):
   currentRow = 0
   piece_reset = False
   score = 0
+  lines = []
 
   game_over = False
   # game loop
@@ -239,6 +240,12 @@ def game_logic(board):
     # update tetrimino in board array
     update_tetrimino_in_board(board, current_piece, current_piece_rotation, currentRow, currentCol)
     print_board(board)
+    if len(lines) > 0:
+      for line in lines:
+        for col in range(1, WIDTH - 1):
+          for row in range(line, 0, -1):
+            board[(row * WIDTH) + col] = board[(row - 1) * WIDTH + col]
+      lines = []
     
     # Get user input (also timing) and check if user input fits
     fits = False
@@ -311,6 +318,7 @@ def game_logic(board):
             if board[(currentRow + row) * WIDTH + col] != 'O' and board[(currentRow + row) * WIDTH + col] != 'M':
               line = False
           if line:
+            lines.append(currentRow + row)
             # remove line, set to =
             for col in range(1, WIDTH-1):
               board[(currentRow + row) * WIDTH + col] = '='
