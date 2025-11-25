@@ -208,19 +208,29 @@ def get_user_input():
 
 # todo check block clear and lose
 def game_logic(board):
-  current_piece: list[str] = TETRIMINOS[get_random_tetrimino()]
+  # current_piece: list[str] = TETRIMINOS[get_random_tetrimino()]
+  current_piece: list[str] = TETRIMINOS[0]
   current_piece_rotation = 0
   currentCol = WIDTH // 2
   currentRow = 0
   piece_reset = False
+  score = 0
 
+  game_over = False
   # game loop
-  while True:
+  while not game_over:
     if piece_reset:
+      # if next piece doesn't fit game over
+      fits = does_piece_fit(board, (currentRow, currentCol), current_piece, current_piece_rotation)
+      if not fits:
+        game_over = True
+        break
+      
       # permanently place piece in board
       update_tetrimino_in_board(board, current_piece, current_piece_rotation, currentRow, currentCol, 'M')
       piece_reset = False
-      current_piece = TETRIMINOS[get_random_tetrimino()]
+      # current_piece = TETRIMINOS[get_random_tetrimino()]
+      current_piece: list[str] = TETRIMINOS[0]
       current_piece_rotation = 0
       currentCol = WIDTH // 2
       currentRow = 0
@@ -260,7 +270,7 @@ def game_logic(board):
         currentRow += 1
       else:
         piece_reset = True
-      continue
+      
     
     elif user_input == 'L':
       current_piece_rotation = current_piece_rotation - 90
@@ -279,25 +289,44 @@ def game_logic(board):
         currentRow += 1
       else:
         piece_reset = True
-      continue
+      
     
     # move down 1 each time, if it hits bottom, reset piece
     fits = does_piece_fit(board, (currentRow + 1, currentCol), current_piece, current_piece_rotation)
+    print('fits', fits)
     if fits:
       print('here')
       currentRow += 1
     else:
       print('piece_reset')
+      update_tetrimino_in_board(board, current_piece, current_piece_rotation, currentRow, currentCol)
       piece_reset = True
-    
-    
+      score += 1
+      # check if we have lines
+      for row in range(4):
+        if currentRow + row < HEIGHT - 1:
+          line = True
 
+          for col in range(1, WIDTH-1):
+            if board[(currentRow + row) * WIDTH + col] != 'O' and board[(currentRow + row) * WIDTH + col] != 'M':
+              line = False
+          if line:
+            # remove line, set to =
+            for col in range(1, WIDTH-1):
+              board[(currentRow + row) * WIDTH + col] = '='
+
+
+  print('Game Over')
+  print(f'Score: {score}')
+      
+    
 def update_tetrimino_in_board(board: list[str], current_piece: list[str], current_piece_rotation: int, 
                               currentRow: int, currentCol: int, piece_val='O'):
   for row in range(4):
     for col in range(4):
       i = rotate(col, row, current_piece_rotation)
-      if current_piece[i] == 'X': # if tetrimino piece has a value, add it to the board
+      field_i = (currentRow + row) * WIDTH + (currentCol + col)
+      if current_piece[i] == 'X' and board[field_i] != '=': # if tetrimino piece has a value, add it to the board
         board[(currentRow + row) * WIDTH + (currentCol + col)] = piece_val # the magic
 
 
