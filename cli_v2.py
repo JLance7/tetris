@@ -215,7 +215,7 @@ def get_user_input():
   if isData(0.1):  # Shorter timeout for responsiveness
     key = read_key(0.1)  # Try to read a key sequence
     if key:
-      print(f"DEBUG: Key received: {key}")  # Debug print
+      # print(f"DEBUG: Key received: {key}")  # Debug print
       if key == 'RIGHT':
         return 'Right'
       elif key == 'LEFT':
@@ -224,6 +224,10 @@ def get_user_input():
         return 'Down'
       elif key == 'UP':
         return 'Up'
+      elif key in ('R', 'r'):
+        return 'R'
+      elif key in ('L', 'l'):
+        return 'L'
     return None
 
 
@@ -247,6 +251,10 @@ def read_key(timeout=0):
               return "DOWN"
             elif c3 == 'A':
               return "UP"
+    elif c1 in ('R', 'r'):
+      return 'R'
+    elif c1 in ('L', 'l'):
+      return 'L'
     return c1  # Return the single character if not an arrow key
   return None  # Return None if no input is available
 
@@ -283,6 +291,8 @@ def game_logic(board):
       # Draw
       update_tetrimino_in_board(board, current_piece, current_piece_rotation, currentRow, currentCol)
       print_board(board)
+      print(f'Score: {score}')
+
       # move pieces down if lines
       if len(lines) > 0:
         for line in lines:
@@ -295,13 +305,14 @@ def game_logic(board):
       fits = False
       user_input = get_user_input()
       if user_input:
-        print(f"User Input: {user_input}")
+        pass
+        # print(f"User Input: {user_input}")
 
       now = time.time()
       # wait 1 sec before moving piece
       if now - last_tick >= 1:
         last_tick = now
-        print("TICK (1 second update)")
+        # print("TICK (1 second update)")
 
         # Clear keyboard input buffer
         termios.tcflush(sys.stdin, termios.TCIFLUSH)
@@ -312,7 +323,7 @@ def game_logic(board):
         # Handle user input or default movement
         if user_input == 'Left':
           if does_piece_fit(board, (currentRow, currentCol - 1), current_piece, current_piece_rotation):
-              currentCol -= 1
+            currentCol -= 1
         elif user_input == 'Right':
           if does_piece_fit(board, (currentRow, currentCol + 1), current_piece, current_piece_rotation):
             currentCol += 1
@@ -321,16 +332,19 @@ def game_logic(board):
             currentRow += 1
         elif user_input == 'R':
           if does_piece_fit(board, (currentRow, currentCol), current_piece, current_piece_rotation + 90):
+            print('yes')
             current_piece_rotation = current_piece_rotation + 90
+          else:
+            print('no')
         elif user_input == 'L':
           if does_piece_fit(board, (currentRow, currentCol), current_piece, current_piece_rotation - 90):
             current_piece_rotation = current_piece_rotation - 90
+        
+        # Default behavior: move down
+        if does_piece_fit(board, (currentRow + 1, currentCol), current_piece, current_piece_rotation):
+          currentRow += 1
         else:
-          # Default behavior: move down
-          if does_piece_fit(board, (currentRow + 1, currentCol), current_piece, current_piece_rotation):
-            currentRow += 1
-          else:
-            piece_reset = True
+          piece_reset = True
 
         # Check if the piece hits the bottom or another piece
         fits = does_piece_fit(board, (currentRow + 1, currentCol), current_piece, current_piece_rotation)
@@ -338,7 +352,6 @@ def game_logic(board):
           # if hits bottom, reset piece
           update_tetrimino_in_board(board, current_piece, current_piece_rotation, currentRow, currentCol)
           piece_reset = True
-          score += 1
           # Check for completed lines, replace with =
           for row in range(4):
             if currentRow + row < HEIGHT - 1:
@@ -348,6 +361,7 @@ def game_logic(board):
                     line = False
               if line:
                 lines.append(currentRow + row)
+                score += 1
                 # Remove line, set to '='
                 for col in range(1, WIDTH - 1):
                     board[(currentRow + row) * WIDTH + col] = '='
