@@ -69,6 +69,8 @@ TETRIMINOS_STRINGS = [
   """
 ] 
 
+game_over = False
+
 def convert_tetriminos_string_to_2d_array() -> list[list[str]]:
   # 1d array
   # break into 1d array first
@@ -199,7 +201,7 @@ def print_tetrimino(tetrimino: list[str], r=0):
 
 
 def test():
-  random_tetrimino = TETRIMINOS[get_random_tetrimino()]
+  random_tetrimino = TETRIMINOS[0]
   print_tetrimino(random_tetrimino)
   print()
   print_tetrimino(random_tetrimino, r=90)
@@ -261,6 +263,7 @@ def read_key(timeout=0):
 
 # todo check block clear and lose
 def game_logic(board):
+    global game_over
     current_piece: list[str] = TETRIMINOS[0]
     current_piece_rotation = 0
     currentCol = WIDTH // 2
@@ -274,14 +277,9 @@ def game_logic(board):
     # game loop
     while not game_over:
       if piece_reset:
-        # if next piece doesn't fit, game over
-        fits = does_piece_fit(board, (currentRow, currentCol), current_piece, current_piece_rotation)
-        if not fits:
-            game_over = True
-            break
-
         # permanently place piece in board
         update_tetrimino_in_board(board, current_piece, current_piece_rotation, currentRow, currentCol, 'M')
+        if game_over: return
         piece_reset = False
         current_piece: list[str] = TETRIMINOS[0]
         current_piece_rotation = 0
@@ -290,6 +288,7 @@ def game_logic(board):
 
       # Draw
       update_tetrimino_in_board(board, current_piece, current_piece_rotation, currentRow, currentCol)
+      
       print_board(board)
       print(f'Score: {score}')
 
@@ -332,10 +331,7 @@ def game_logic(board):
             currentRow += 1
         elif user_input == 'R':
           if does_piece_fit(board, (currentRow, currentCol), current_piece, current_piece_rotation + 90):
-            print('yes')
             current_piece_rotation = current_piece_rotation + 90
-          else:
-            print('no')
         elif user_input == 'L':
           if does_piece_fit(board, (currentRow, currentCol), current_piece, current_piece_rotation - 90):
             current_piece_rotation = current_piece_rotation - 90
@@ -357,16 +353,17 @@ def game_logic(board):
             if currentRow + row < HEIGHT - 1:
               line = True
               for col in range(1, WIDTH - 1):
+                # O is current pice, M is placed piece, X is value in tetrimino piece array
                 if board[(currentRow + row) * WIDTH + col] not in ('O', 'M'):
-                    line = False
+                  line = False
               if line:
                 lines.append(currentRow + row)
                 score += 1
                 # Remove line, set to '='
                 for col in range(1, WIDTH - 1):
-                    board[(currentRow + row) * WIDTH + col] = '='
+                  board[(currentRow + row) * WIDTH + col] = '='
     
-    time.sleep(0.1) # reduce cpu usage
+      time.sleep(0.1) # reduce cpu usage
     termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings) # clear stuff
     print('Game Over')
     print(f'Score: {score}')
@@ -374,6 +371,12 @@ def game_logic(board):
     
 def update_tetrimino_in_board(board: list[str], current_piece: list[str], current_piece_rotation: int, 
                               currentRow: int, currentCol: int, piece_val='O'):
+  global game_over
+  # if next piece doesn't fit, game over
+  fits = does_piece_fit(board, (currentRow, currentCol), current_piece, current_piece_rotation)
+  if not fits:
+    game_over = True
+    return
   for row in range(4):
     for col in range(4):
       i = rotate(col, row, current_piece_rotation)
