@@ -261,7 +261,7 @@ def read_key(timeout=0):
   return None  # Return None if no input is available
 
 
-# todo check block clear and lose
+
 def game_logic(board):
     global game_over
     current_piece: list[str] = TETRIMINOS[0]
