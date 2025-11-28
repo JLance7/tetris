@@ -16,11 +16,12 @@ BOARD_WIDTH = 12
 BOARD_HEIGHT = 18
 BOARD_BLOCK_WIDTH = 50
 BOARD_BLOCK_HEIGHT = 50
-BOARD_START_X = GAME_BOARD_WIDTH / 2
+BOARD_START_X = GAME_BOARD_WIDTH / 2 + BOARD_BLOCK_WIDTH
 
 # Rectangles
 BACKGROUND = pygame.Rect(0, 0, WIDTH, HEIGHT) 
-GAME_BOARD_RECT = pygame.Rect(BOARD_START_X, 0 + Y_OFFSET, GAME_BOARD_WIDTH, HEIGHT - Y_OFFSET*2)  
+# remove left and right X of ascii board bucket
+GAME_BOARD_RECT = pygame.Rect(BOARD_START_X, 0 + Y_OFFSET, GAME_BOARD_WIDTH - BOARD_BLOCK_WIDTH * 2, HEIGHT - Y_OFFSET*2 - BOARD_BLOCK_WIDTH)  
 
 # colors
 BLACK = (0, 0, 0)
@@ -28,11 +29,35 @@ RED = (255, 0, 0)
 WHITE = (255, 255, 255)
 GRAY = (220, 220, 220)
 GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+PURPLE = (128, 0, 128)
+PINK = (255, 192, 203)
+YELLOW = (255, 255, 0) 
+ORANGE = (255, 165, 0)
 
 pygame.init()
 MY_CUSTOM_EVENT = pygame.USEREVENT + 1
 MY_CUSTOM_EVENT_end_game = pygame.USEREVENT + 2
 pygame.time.set_timer(MY_CUSTOM_EVENT, 1000) 
+
+
+def get_fancy_color(tetrimino: list[str]):
+  if tetrimino == TETRIMINOS[0]:
+    return GREEN
+  if tetrimino == TETRIMINOS[1]:
+    return BLUE
+  if tetrimino == TETRIMINOS[2]:
+    return RED
+  if tetrimino == TETRIMINOS[3]:
+    return PURPLE
+  if tetrimino == TETRIMINOS[4]:
+    return PINK
+  if tetrimino == TETRIMINOS[5]:
+    return YELLOW
+  if tetrimino == TETRIMINOS[6]:
+    return ORANGE
+
+TETRIMINOS, board = setup()
 
 def main():
   pygame.font.init()
@@ -44,11 +69,11 @@ def main():
   direction = Direction.DOWN
 
   # initial setup
-  TETRIMINOS, board = setup()
-  print_board(board)
+  # TETRIMINOS, board = setup()
+  # print_board(board)
   current_piece: list[str] = TETRIMINOS[get_random_tetrimino()]
   current_piece_rotation = 0
-  currentCol = 12 // 2
+  currentCol = BOARD_WIDTH // 2
   currentRow = 0
   piece_reset = False
   score = 0
@@ -67,7 +92,7 @@ def main():
       print('piece reset')
       # permanently place piece in board
       update_tetrimino_in_board(board, current_piece, current_piece_rotation, currentRow, currentCol, 'M')
-      print_board(board)
+      # print_board(board)
     
       piece_reset = False
       current_piece: list[str] = TETRIMINOS[get_random_tetrimino()]
@@ -77,7 +102,7 @@ def main():
     
     # Draw
     update_tetrimino_in_board(board, current_piece, current_piece_rotation, currentRow, currentCol)
-    draw_screen(board, score)
+    draw_screen(board, score, current_piece)
 
     # move pieces down if lines
     if len(lines) > 0:
@@ -109,20 +134,20 @@ def main():
         else:
           new_direction = direction
         user_input = new_direction
-      # elif event.type == MY_CUSTOM_EVENT: 
-      #   # This code will execute every 1 second
-      #   # print("Action performed!")
-      #   # Default behavior: move down
-      #   if does_piece_fit(board, (currentRow + 1, currentCol), current_piece, current_piece_rotation):
-      #     remove_tetrimino_from_board(board, current_piece, current_piece_rotation, currentRow, currentCol)
-      #     currentRow += 1
-      #   else:
-      #     piece_reset = True
+      elif event.type == MY_CUSTOM_EVENT: 
+        # This code will execute every 1 second
+        # print("Action performed!")
+        # Default behavior: move down
+        if does_piece_fit(board, (currentRow + 1, currentCol), current_piece, current_piece_rotation):
+          remove_tetrimino_from_board(board, current_piece, current_piece_rotation, currentRow, currentCol)
+          currentRow += 1
+        else:
+          piece_reset = True
 
       elif event.type == MY_CUSTOM_EVENT_end_game:
         print("Custom action event received!")
-        # pygame.quit()
-        # sys.exit() 
+        pygame.quit()
+        sys.exit() 
 
       if event.type == pygame.QUIT:
         pygame.quit()
@@ -183,19 +208,19 @@ class Direction(Enum):
   L = 4
 
 
-def draw_screen(board, score):
+def draw_screen(board, score, current_piece):
   pygame.draw.rect(WIN, BLACK, BACKGROUND)
   pygame.draw.rect(WIN, GRAY, GAME_BOARD_RECT)
   draw_lines()
   draw_text(score)
-  draw_board(board)
+  draw_board(board, current_piece)
   pygame.display.update()
 
 
 def draw_lines():
   # vertical lines
   start = int(BOARD_START_X) + BOARD_BLOCK_WIDTH 
-  end = (BOARD_WIDTH * BOARD_BLOCK_WIDTH) + BOARD_START_X  
+  end = (BOARD_WIDTH * BOARD_BLOCK_WIDTH) + BOARD_START_X  - BOARD_BLOCK_WIDTH
   end = int(end)
   increment = BOARD_BLOCK_WIDTH 
   # print('start', start, 'end', end, 'increment', increment)
@@ -203,16 +228,16 @@ def draw_lines():
   for x in range(start, end, increment):
     # print(x)
     # left, top, width, height
-    line = pygame.Rect(x - line_width, 0 + Y_OFFSET, line_width, HEIGHT - Y_OFFSET * 2)
+    line = pygame.Rect(x - line_width, 0 + Y_OFFSET, line_width, HEIGHT - Y_OFFSET * 2 - BOARD_BLOCK_HEIGHT)
     pygame.draw.rect(WIN, WHITE, line)
 
   # 18 horizontal lines
   start = BOARD_BLOCK_HEIGHT
-  end = BOARD_HEIGHT * BOARD_BLOCK_HEIGHT + Y_OFFSET
+  end = BOARD_HEIGHT * BOARD_BLOCK_HEIGHT + Y_OFFSET - BOARD_BLOCK_WIDTH
   increment = BOARD_BLOCK_HEIGHT
   for y in range(start, end, increment):
     # left, top, width, height
-    line = pygame.Rect(BOARD_START_X, y - line_width, GAME_BOARD_WIDTH, line_width)
+    line = pygame.Rect(BOARD_START_X, y - line_width, GAME_BOARD_WIDTH - BOARD_BLOCK_WIDTH * 2, line_width)
     pygame.draw.rect(WIN, WHITE, line)
 
 
@@ -225,9 +250,10 @@ def draw_text(score):
   WIN.blit(score_text, (x, y))
 
 
-def draw_board(board: list[str]):
-  for row in range(18):
-    for col in range(12):
+def draw_board(board: list[str], current_piece: list[str]):
+  # don't color in x ascii bucket of board
+  for row in range(0, 17):
+    for col in range(1, 11):
       i = get_i_board(row, col)
       # print(i, end=' ')
       if board[i] == '.':
@@ -235,12 +261,15 @@ def draw_board(board: list[str]):
         pass
       else:
         value = board[i]
-        left = int(BOARD_START_X) + (BOARD_BLOCK_WIDTH * col)
+        left = int(BOARD_START_X) + (BOARD_BLOCK_WIDTH * col) - BOARD_BLOCK_WIDTH
         top = Y_OFFSET + (BOARD_BLOCK_HEIGHT * row)
         width = BOARD_BLOCK_WIDTH
         height = BOARD_BLOCK_HEIGHT
         cube = pygame.Rect(left, top, width, height)
-        pygame.draw.rect(WIN, GREEN, cube)
+        if board[i] == 'O':
+          pygame.draw.rect(WIN, get_fancy_color(current_piece), cube)
+        else:
+          pygame.draw.rect(WIN, GREEN, cube)
 
 
 def print_board(board):
