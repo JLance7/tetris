@@ -31,6 +31,7 @@ GREEN = (0, 255, 0)
 
 pygame.init()
 MY_CUSTOM_EVENT = pygame.USEREVENT + 1
+MY_CUSTOM_EVENT_end_game = pygame.USEREVENT + 2
 pygame.time.set_timer(MY_CUSTOM_EVENT, 1000) 
 
 def main():
@@ -44,15 +45,17 @@ def main():
 
   # initial setup
   TETRIMINOS, board = setup()
+  print_board(board)
   current_piece: list[str] = TETRIMINOS[get_random_tetrimino()]
   current_piece_rotation = 0
-  currentCol = 18 // 2
+  currentCol = 12 // 2
   currentRow = 0
   piece_reset = False
   score = 0
   lines = []
 
   game_over = False
+  user_input = ''
 
   while run:
     time = clock.tick(FPS)
@@ -61,9 +64,11 @@ def main():
 
     # logic
     if piece_reset:
+      print('piece reset')
       # permanently place piece in board
       update_tetrimino_in_board(board, current_piece, current_piece_rotation, currentRow, currentCol, 'M')
-      if game_over: return
+      print_board(board)
+    
       piece_reset = False
       current_piece: list[str] = TETRIMINOS[get_random_tetrimino()]
       current_piece_rotation = 0
@@ -72,7 +77,7 @@ def main():
     
     # Draw
     update_tetrimino_in_board(board, current_piece, current_piece_rotation, currentRow, currentCol)
-    draw_screen(board)
+    draw_screen(board, score)
 
     # move pieces down if lines
     if len(lines) > 0:
@@ -85,8 +90,8 @@ def main():
     # Get user keyboard input and check if user input fits
     fits = False
     
-    new_direction = Direction.DOWN
-    user_input = new_direction
+    
+    user_input = ''
     # check user input and events
     for event in pygame.event.get():
       # key pressed
@@ -104,15 +109,20 @@ def main():
         else:
           new_direction = direction
         user_input = new_direction
-      elif event.type == MY_CUSTOM_EVENT:
-        # This code will execute every 1 second
-        print("Action performed!")
-        # Default behavior: move down
-        if does_piece_fit(board, (currentRow + 1, currentCol), current_piece, current_piece_rotation):
-          remove_tetrimino_from_board(board, current_piece, current_piece_rotation, currentRow, currentCol)
-          currentRow += 1
-        else:
-          piece_reset = True
+      # elif event.type == MY_CUSTOM_EVENT: 
+      #   # This code will execute every 1 second
+      #   # print("Action performed!")
+      #   # Default behavior: move down
+      #   if does_piece_fit(board, (currentRow + 1, currentCol), current_piece, current_piece_rotation):
+      #     remove_tetrimino_from_board(board, current_piece, current_piece_rotation, currentRow, currentCol)
+      #     currentRow += 1
+      #   else:
+      #     piece_reset = True
+
+      elif event.type == MY_CUSTOM_EVENT_end_game:
+        print("Custom action event received!")
+        # pygame.quit()
+        # sys.exit() 
 
       if event.type == pygame.QUIT:
         pygame.quit()
@@ -128,13 +138,13 @@ def main():
     elif user_input == Direction.RIGHT:
       if does_piece_fit(board, (currentRow, currentCol + 1), current_piece, current_piece_rotation):
         currentCol += 1
-    # elif user_input == Direction.DOWN:
-    #   if does_piece_fit(board, (currentRow + 1, currentCol), current_piece, current_piece_rotation):
-    #     currentRow += 1
-    elif user_input == 'R':
+    elif user_input == Direction.DOWN:
+      if does_piece_fit(board, (currentRow + 1, currentCol), current_piece, current_piece_rotation):
+        currentRow += 1
+    elif user_input == Direction.R:
       if does_piece_fit(board, (currentRow, currentCol), current_piece, current_piece_rotation + 90):
         current_piece_rotation = current_piece_rotation + 90
-    elif user_input == 'L':
+    elif user_input == Direction.L:
       if does_piece_fit(board, (currentRow, currentCol), current_piece, current_piece_rotation - 90):
         current_piece_rotation = current_piece_rotation - 90
   
@@ -173,11 +183,11 @@ class Direction(Enum):
   L = 4
 
 
-def draw_screen(board):
+def draw_screen(board, score):
   pygame.draw.rect(WIN, BLACK, BACKGROUND)
   pygame.draw.rect(WIN, GRAY, GAME_BOARD_RECT)
   draw_lines()
-  draw_text()
+  draw_text(score)
   draw_board(board)
   pygame.display.update()
 
@@ -206,8 +216,8 @@ def draw_lines():
     pygame.draw.rect(WIN, WHITE, line)
 
 
-def draw_text():
-  score = 0
+def draw_text(score):
+  score = str(score)
   my_font2 = pygame.font.SysFont('Bahnschrift', 40)
   score_text = my_font2.render(f'Score: {score}', True, WHITE)
   x = 0 + WIDTH//12
@@ -231,6 +241,19 @@ def draw_board(board: list[str]):
         height = BOARD_BLOCK_HEIGHT
         cube = pygame.Rect(left, top, width, height)
         pygame.draw.rect(WIN, GREEN, cube)
+
+
+def print_board(board):
+  # 1d version
+  for row in range(BOARD_HEIGHT):
+    for col in range(BOARD_WIDTH):
+      i = get_i_board(row, col)
+      # print(i, end=' ')
+      if board[i] == '.':
+        print(' ', end='')
+      else:
+        print(board[i], end='')
+    print()
 
 
 if __name__ == '__main__':

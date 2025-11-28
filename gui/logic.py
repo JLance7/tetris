@@ -1,5 +1,6 @@
 import time
 import sys
+import pygame
 
 WIDTH = 12
 HEIGHT = 18
@@ -100,6 +101,7 @@ def setup():
 
 
 def rotate(col, row, r=0):
+  r = r % 360
   if r == 0:
     i = row * 4 + col
   if r == 90 or r == -270:
@@ -124,12 +126,15 @@ def get_random_tetrimino():
     
 def update_tetrimino_in_board(board: list[str], current_piece: list[str], current_piece_rotation: int, 
                               currentRow: int, currentCol: int, piece_val='O'):
-  global game_over
+  from gui import MY_CUSTOM_EVENT_end_game
   # if next piece doesn't fit, game over
   fits = does_piece_fit(board, (currentRow, currentCol), current_piece, current_piece_rotation)
   if not fits:
     game_over = True
-    return
+    custom_event = pygame.event.Event(MY_CUSTOM_EVENT_end_game, message="Hello from custom event!")
+    pygame.event.post(custom_event)
+    print('not fits!!!', game_over)
+    return True
   for row in range(4):
     for col in range(4):
       i = rotate(col, row, current_piece_rotation)
