@@ -138,9 +138,8 @@ def main():
           piece_reset = True
 
       elif event.type == MY_CUSTOM_EVENT_end_game:
-        print("Custom action event received!")
-        pygame.quit()
-        sys.exit() 
+        print("Game Over")
+        game_over_screen(score)
 
       if event.type == pygame.QUIT:
         pygame.quit()
@@ -316,6 +315,44 @@ def get_fancy_color_current_piece(tetrimino: list[str]):
     return YELLOW
   if tetrimino == TETRIMINOS[6]:
     return ORANGE
+
+
+def game_over_screen(score: int):
+  global board
+  print('score', score)
+
+  my_font = pygame.font.SysFont('Bahnschrift', 50)
+  game_over_text = my_font.render('Game over', True, WHITE)
+    
+  # pygame.draw.rect(WIN, BLACK, BACKGROUND)
+  WIN.blit(game_over_text, (WIDTH//2 - game_over_text.get_width()//2, HEIGHT//4))
+
+  my_font2 = pygame.font.SysFont('Bahnschrift', 40)
+  score_text = my_font2.render(f'Your Score: {score}', True, WHITE)
+  WIN.blit(score_text, (WIDTH//2 - score_text.get_width()//2, HEIGHT//4 + 50))
+
+  play_again_text = my_font2.render('Press \'enter\' to play again or \'esc\' to quit', True, WHITE)
+  WIN.blit(play_again_text, (WIDTH//2 - play_again_text.get_width()//2, HEIGHT//4 + 120))
+  pygame.display.flip()
+  run = True
+  clock = pygame.time.Clock()
+  while run:
+      clock.tick(FPS)
+      for event in pygame.event.get():
+          if event.type == pygame.QUIT:
+            run = False
+            pygame.quit()
+            sys.exit()
+          if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RETURN:
+              run = False
+              TETRIMINOS, board = setup()
+              print_board(board)
+              main()
+            elif event.key == pygame.K_ESCAPE:
+              run = False
+              pygame.quit()
+              sys.exit()
 
 
 if __name__ == '__main__':
