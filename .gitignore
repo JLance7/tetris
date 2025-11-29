@@ -1,1 +1,4 @@
 .~lock.notes.ods#
+pycache
+gui/build
+gui/dist

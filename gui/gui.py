@@ -34,6 +34,7 @@ PURPLE = (128, 0, 128)
 PINK = (255, 192, 203)
 YELLOW = (255, 255, 0) 
 ORANGE = (255, 165, 0)
+CYAN = (0, 255, 255)
 
 pygame.init()
 MY_CUSTOM_EVENT = pygame.USEREVENT + 1
@@ -80,7 +81,7 @@ def main():
 
     # logic
     if piece_reset:
-      print('piece reset')
+      # print('piece reset')
       # permanently place piece in board
       update_tetrimino_in_board(board, current_piece, current_piece_rotation, 
                                 currentRow, currentCol, 'M')
@@ -173,12 +174,14 @@ def main():
       update_tetrimino_in_board(board, current_piece, current_piece_rotation, currentRow, currentCol)
       piece_reset = True
       # Check for completed lines, replace with =
+      used_chars = ('O', TETRIMINO_0_char, TETRIMINO_1_char, TETRIMINO_2_char, TETRIMINO_3_char,
+                    TETRIMINO_4_char, TETRIMINO_5_char, TETRIMINO_6_char, )
       for row in range(4):
         if currentRow + row < BOARD_HEIGHT - 1:
           line = True
           for col in range(1, BOARD_WIDTH - 1):
             # O is current pice, M is placed piece, X is value in tetrimino piece array
-            if board[(currentRow + row) * BOARD_WIDTH + col] not in ('O', 'M'):
+            if board[(currentRow + row) * BOARD_WIDTH + col] not in used_chars:
               line = False
           if line:
             lines.append(currentRow + row)
@@ -203,9 +206,10 @@ class Direction(Enum):
 def draw_screen(board, score, current_piece):
   pygame.draw.rect(WIN, BLACK, BACKGROUND)
   pygame.draw.rect(WIN, GRAY, GAME_BOARD_RECT)
-  draw_lines()
+  
   draw_text(score)
   draw_board(board, current_piece)
+  draw_lines()
   pygame.display.update()
 
 
@@ -293,6 +297,8 @@ def get_fancy_color_for_specific_char(char: str):
     return YELLOW
   if char == TETRIMINO_6_char:
     return ORANGE
+  if char == '=':
+    return CYAN
     
 
 def get_fancy_color_current_piece(tetrimino: list[str]):
