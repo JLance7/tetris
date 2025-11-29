@@ -126,21 +126,44 @@ def get_random_tetrimino():
     
 def update_tetrimino_in_board(board: list[str], current_piece: list[str], current_piece_rotation: int, 
                               currentRow: int, currentCol: int, piece_val='O'):
+  from gui import TETRIMINOS
   from gui import MY_CUSTOM_EVENT_end_game
+  from gui import TETRIMINO_0_char
+  from gui import TETRIMINO_1_char
+  from gui import TETRIMINO_2_char
+  from gui import TETRIMINO_3_char
+  from gui import TETRIMINO_4_char
+  from gui import TETRIMINO_5_char
+  from gui import TETRIMINO_6_char
+
   # if next piece doesn't fit, game over
   fits = does_piece_fit(board, (currentRow, currentCol), current_piece, current_piece_rotation)
   if not fits:
-    game_over = True
     custom_event = pygame.event.Event(MY_CUSTOM_EVENT_end_game, message="Hello from custom event!")
     pygame.event.post(custom_event)
-    print('not fits!!!', game_over)
-    return True
+    
   for row in range(4):
     for col in range(4):
       i = rotate(col, row, current_piece_rotation)
       field_i = (currentRow + row) * WIDTH + (currentCol + col)
       if current_piece[i] == 'X' and board[field_i] != '=': # if tetrimino piece has a value, add it to the board
-        board[(currentRow + row) * WIDTH + (currentCol + col)] = piece_val # the magic
+        if piece_val == 'M': # placing it permanently
+          if current_piece == TETRIMINOS[0]:
+            board[(currentRow + row) * WIDTH + (currentCol + col)] = TETRIMINO_0_char
+          elif current_piece == TETRIMINOS[1]:
+            board[(currentRow + row) * WIDTH + (currentCol + col)] = TETRIMINO_1_char
+          elif current_piece == TETRIMINOS[2]:
+            board[(currentRow + row) * WIDTH + (currentCol + col)] = TETRIMINO_2_char
+          elif current_piece == TETRIMINOS[3]:
+            board[(currentRow + row) * WIDTH + (currentCol + col)] = TETRIMINO_3_char
+          elif current_piece == TETRIMINOS[4]:
+            board[(currentRow + row) * WIDTH + (currentCol + col)] = TETRIMINO_4_char
+          elif current_piece == TETRIMINOS[5]:
+            board[(currentRow + row) * WIDTH + (currentCol + col)] = TETRIMINO_5_char
+          elif current_piece == TETRIMINOS[6]:
+            board[(currentRow + row) * WIDTH + (currentCol + col)] = TETRIMINO_6_char
+        else:
+          board[(currentRow + row) * WIDTH + (currentCol + col)] = piece_val # the magic
 
 
 def remove_tetrimino_from_board(board: list[str], current_piece: list[str], current_piece_rotation: int, 
@@ -156,6 +179,16 @@ def remove_tetrimino_from_board(board: list[str], current_piece: list[str], curr
 # does_piece_fit(board, (currentRow + 1, currentCol), tetrimino_id, current_piece_rotation)
 def does_piece_fit(board: list[str], location_in_array: tuple[int, int], tetrimino_piece: list[str], 
                    current_rotation: int) -> bool: 
+  from gui import TETRIMINO_0_char
+  from gui import TETRIMINO_1_char
+  from gui import TETRIMINO_2_char
+  from gui import TETRIMINO_3_char
+  from gui import TETRIMINO_4_char
+  from gui import TETRIMINO_5_char
+  from gui import TETRIMINO_6_char
+  permanent_chars = (TETRIMINO_0_char, TETRIMINO_1_char, TETRIMINO_2_char, TETRIMINO_3_char,
+                    TETRIMINO_4_char, TETRIMINO_5_char, TETRIMINO_6_char, )
+                
   # location_in_array is (row, col)
   row_i_in_array, col_i_in_array = location_in_array
   for row in range(4):
@@ -172,7 +205,7 @@ def does_piece_fit(board: list[str], location_in_array: tuple[int, int], tetrimi
       if (col_i_in_array + col >= 0) and (col_i_in_array + col < WIDTH):
         if (row_i_in_array + row >= 0) and (row_i_in_array + row < HEIGHT):
           # main check thing, if piece index is a blck, and it's board index is not and not fully placed piece (M)
-          if (tetrimino_piece[piece_i] == 'X') and ( (board[field_i] == 'X') or (board[field_i] == 'M') ): 
+          if (tetrimino_piece[piece_i] == 'X') and ( (board[field_i] == 'X') or (board[field_i] in permanent_chars) ): 
             return False # fail on first hit
   return True
 

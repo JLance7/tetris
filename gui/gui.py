@@ -40,22 +40,13 @@ MY_CUSTOM_EVENT = pygame.USEREVENT + 1
 MY_CUSTOM_EVENT_end_game = pygame.USEREVENT + 2
 pygame.time.set_timer(MY_CUSTOM_EVENT, 1000) 
 
-
-def get_fancy_color(tetrimino: list[str]):
-  if tetrimino == TETRIMINOS[0]:
-    return GREEN
-  if tetrimino == TETRIMINOS[1]:
-    return BLUE
-  if tetrimino == TETRIMINOS[2]:
-    return RED
-  if tetrimino == TETRIMINOS[3]:
-    return PURPLE
-  if tetrimino == TETRIMINOS[4]:
-    return PINK
-  if tetrimino == TETRIMINOS[5]:
-    return YELLOW
-  if tetrimino == TETRIMINOS[6]:
-    return ORANGE
+TETRIMINO_0_char = 'a'
+TETRIMINO_1_char = 'b'
+TETRIMINO_2_char = 'c'
+TETRIMINO_3_char = 'd'
+TETRIMINO_4_char = 'e'
+TETRIMINO_5_char = 'f'
+TETRIMINO_6_char = 'g'
 
 TETRIMINOS, board = setup()
 
@@ -91,7 +82,8 @@ def main():
     if piece_reset:
       print('piece reset')
       # permanently place piece in board
-      update_tetrimino_in_board(board, current_piece, current_piece_rotation, currentRow, currentCol, 'M')
+      update_tetrimino_in_board(board, current_piece, current_piece_rotation, 
+                                currentRow, currentCol, 'M')
       # print_board(board)
     
       piece_reset = False
@@ -267,9 +259,10 @@ def draw_board(board: list[str], current_piece: list[str]):
         height = BOARD_BLOCK_HEIGHT
         cube = pygame.Rect(left, top, width, height)
         if board[i] == 'O':
-          pygame.draw.rect(WIN, get_fancy_color(current_piece), cube)
+          pygame.draw.rect(WIN, get_fancy_color_current_piece(current_piece), cube)
         else:
-          pygame.draw.rect(WIN, GREEN, cube)
+          pygame.draw.rect(WIN, get_fancy_color_for_specific_char(value), cube)
+
 
 
 def print_board(board):
@@ -283,6 +276,40 @@ def print_board(board):
       else:
         print(board[i], end='')
     print()
+
+
+def get_fancy_color_for_specific_char(char: str):
+  if char == TETRIMINO_0_char:
+    return GREEN
+  if char == TETRIMINO_1_char:
+    return BLUE
+  if char == TETRIMINO_2_char:
+    return RED
+  if char == TETRIMINO_3_char:
+    return PURPLE
+  if char == TETRIMINO_4_char:
+    return PINK
+  if char == TETRIMINO_5_char:
+    return YELLOW
+  if char == TETRIMINO_6_char:
+    return ORANGE
+    
+
+def get_fancy_color_current_piece(tetrimino: list[str]):
+  if tetrimino == TETRIMINOS[0]:
+    return GREEN
+  if tetrimino == TETRIMINOS[1]:
+    return BLUE
+  if tetrimino == TETRIMINOS[2]:
+    return RED
+  if tetrimino == TETRIMINOS[3]:
+    return PURPLE
+  if tetrimino == TETRIMINOS[4]:
+    return PINK
+  if tetrimino == TETRIMINOS[5]:
+    return YELLOW
+  if tetrimino == TETRIMINOS[6]:
+    return ORANGE
 
 
 if __name__ == '__main__':
